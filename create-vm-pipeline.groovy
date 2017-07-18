@@ -1,6 +1,5 @@
 pipeline {
     agent any
-    checkout scm
     parameters {
         string(name: 'VM_CNT', defaultValue: '1', description: 'The count of VMs which have to be created.')
         string(name: 'VM_NAME', defaultValue: 'node', description: 'Name prefix for VM node/s is/are going to be created.')
