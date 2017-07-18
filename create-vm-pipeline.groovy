@@ -12,6 +12,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                checkout scm
                 echo "Count of VM: ${params.VM_CNT}"
                 println "Prefix name is: ${params.VM_NAME}" 
                 script {
