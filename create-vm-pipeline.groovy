@@ -1,23 +1,23 @@
 pipeline {
     agent any
     parameters {
-        string(name: 'VM_CNT', defaultValue: '1', description: 'The count of VMs which have to be created.')
-        string(name: 'VM_NAME', defaultValue: 'node', description: 'Name prefix for VM node/s is/are going to be created.')
-        string(name: 'VM_RAM', defaultValue: '512', description: 'RAM size in MB for the VM.')
-        string(name: 'VM_DISK_SIZE', defaultValue: '5', description: 'Disk size in GB for the VM.')
-        string(name: 'VM_CPU_CNT', defaultValue: '1', description: 'The count of available CPU inside the node.')
-        string(name: 'VM_OS_IMG', defaultValue: '', description: 'The path or URL where OS image is located.')
-        string(name: 'VM_STORE_PATH', defaultValue: '/var/lib/libvirt/images', description: 'The the where VM image will be created.')
+        string(name: 'DOM_CNT', defaultValue: '1', description: 'The count of domains which have to be created.')
+        string(name: 'DOM_NAME', defaultValue: 'node', description: 'Name prefix for domain/s is/are going to be created.')
+        string(name: 'DOM_RAM', defaultValue: '512', description: 'RAM size in MB for the domain.')
+        string(name: 'DOM_DISK_SIZE', defaultValue: '5', description: 'Disk size in GB for the domain.')
+        string(name: 'DOM_CPU_CNT', defaultValue: '1', description: 'The count of available CPU inside the domain.')
+        string(name: 'DOM_OS_IMG', defaultValue: '', description: 'The path or URL where OS image is located.')
+        string(name: 'DOM_STORE_PATH', defaultValue: '/var/lib/libvirt/images', description: 'The place where domain image will be created.')
     }
     stages {
         stage('Build') {
             steps {
-                echo "Count of VM: ${params.VM_CNT}"
-                println "Prefix name is: ${params.VM_NAME}" 
+                echo "Count of Domains: ${params.DOM_CNT}"
+                println "Prefix name is: ${params.DOM_NAME}" 
                 script {
-                    for (int i = 1; i <= params.VM_CNT.toInteger(); ++i) {
-                        echo "VM node with name ${params.VM_NAME}${i} has been created"
-                        sh "/vm/scripts/create_vm.sh ${params.VM_NAME}${i}"
+                    for (int i = 1; i <= params.DOM_CNT.toInteger(); ++i) {
+                        echo "Domain with name ${params.DOM_NAME}${i} has been created"
+                        sh "/vm/scripts/create_vm.sh ${params.DOM_NAME}${i}"
                     }
                 }
             }
