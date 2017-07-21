@@ -12,7 +12,29 @@ def createDevOpsEnv(path, tpl){
     export ENV_NAME=${params.ENV_NAME} &&
     ${path} create-env ${tpl}
     """, returnStdout: true)
-}   
+}
+
+/**
+ * Erases the env 
+ *
+ * @param path Path to dos.py  
+ * @param env name of the ENV have to be deleted 
+  */
+def eraseDevOpsEnv(path, env){
+    echo "${env} will be erased"
+}
+
+/**
+ * Starts the env 
+ * 
+ * @param path Path to dos.py 
+ * @param env name of the ENV have to be brought up 
+  */
+def startupDevOpsEnv(path, env){
+    return sh(script:"""
+    ${path} start ${env}
+    """, returnStdout: true)
+}
 
 node {
     stage ('creating environmet') {
@@ -23,11 +45,20 @@ node {
         if ("${params.TEMPLATE}" == 'Single') {
             echo "Single"
             tpl = '/var/fuel-devops-venv/tpl/clound-init-single.yaml'
-//          createDevOpsEnv('Create')
         } else if ("${params.TEMPLATE}" == 'Multi') {
             echo "Multi"
         }
-        createDevOpsEnv('/var/fuel-devops-venv/fuel-devops-venv/bin/dos.py',"${tpl}")
+        try {
+            createDevOpsEnv('/var/fuel-devops-venv/fuel-devops-venv/bin/dos.py',"${tpl}")
+        } catch (err) {
+            error("${err}")
+//            eraseDevOpsEnv("${params.ENV_NAME}")   
+        }
+        try {
+            startupDevOpsEnv('/var/fuel-devops-venv/fuel-devops-venv/bin/dos.py',"${params.ENV_NAME}")
+        } catch (err) {
+            error("${params.ENV_NAME} has not been managed to bring up")
+        }        
     }
 }
 
