@@ -75,7 +75,7 @@ template:
               cloud_init_iface_up: enp0s3
               volumes:
                 - name: system
-                  capacity: !os_env NODE_VOLUME_SIZE, 3
+                  capacity: !os_env NODE_VOLUME_SIZE, 6
                   source_image: /var/lib/libvirt/images/xenial-server-cloudimg-amd64-disk1.img
                   format: qcow2
                 - name: iso  # Volume with name 'iso' will be used
@@ -194,20 +194,23 @@ template:
                             else
                                git clone -b $reclass_branch --recurse-submodules $reclass_address /srv/salt/reclass
                             fi
+                            
+                            node_hostname="$(hostname -s)"
+                            node_domain='local'
+                            node_name="$(hostname -s)"
+                            node_cluster=''
+                            cluster_name='virtual-mcp11-aio'
+
+                            sed -i "s/192.168.10.100/$(ifconfig enp0s3 | grep 'inet addr' | awk -F' ' '{print $2}' | cut -d':' -f2)/g" /srv/salt/reclass/classes/cluster/${cluster_name}/init.yml
 
                             mkdir -p /srv/salt/reclass/classes/service
 
                             mkdir -p /srv/salt/reclass/nodes/_generated
 
-                            node_hostname="$(hostname -s)"
-                            node_domain='local'
-                            node_name="$(hostname -s)"
-                            node_cluster=''
-                            cluster_name='virtual-mcp11-ovs'
 
                             echo "
                             classes:
-                            - cluster.$cluster_name.infra.config
+                            - cluster.$cluster_name
                             parameters:
                               _param:
                                 linux_system_codename: xenial
