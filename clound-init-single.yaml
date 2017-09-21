@@ -259,7 +259,10 @@ template:
 
                             [ ! -d /srv/salt/reclass/classes/service ] && mkdir -p /srv/salt/reclass/classes/service
                             
-                            FORMULAS_SALT_MASTER=${FORMULAS_SALT_MASTER:- $EXTRA_FORMULAS memcached openssh ntp nginx collectd sensu heka sphinx mysql grafana libvirt rsyslog glusterfs postfix xtrabackup freeipa prometheus telegraf elasticsearch kibana rundeck devops-portal rsync docker keepalived aptly jenkins gerrit artifactory influxdb linux reclass salt git}
+                            FORMULAS_SALT_MASTER=${FORMULAS_SALT_MASTER:- $EXTRA_FORMULAS memcached openssh ntp nginx collectd sensu heka sphinx mysql grafana libvirt rsyslog glusterfs postfix xtrabackup freeipa prometheus telegraf elasticsearch kibana rundeck devops-portal rsync docker keepalived aptly jenkins gerrit artifactory influxdb}
+
+                            declare -a FORMULAS_SALT_MASTER=(linux reclass salt git $(echo $FORMULAS_SALT_MASTER))
+                            export FORMULAS_SALT_MASTER
 
                             #declare -a formula_services=("linux" "reclass" "salt" "openssh" "ntp" "git" "nginx" "collectd" "sensu" "heka" "sphinx" "mysql" "grafana" "libvirt" "rsyslog" "memcached" "rabbitmq" "apache" "keystone" "glance" "nova" "neutron" "cinder" "heat" "horizon" "ironic" "tftpd-hpa" "bind" "powerdns" "designate")
 
