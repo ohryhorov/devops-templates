@@ -231,9 +231,9 @@ template:
                                     engine: local
                             " > /srv/salt/reclass/nodes/_generated/$node_hostname.$node_domain.yml
 
-                            FORMULA_PATH=${FORMULA_PATH:-/usr/share/salt-formulas}
                             FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial testing salt}
                             FORMULA_GPG=${FORMULA_GPG:-http://apt-mk.mirantis.com/public.gpg}
+                            FORMULAS_PATH=${FORMULAS_PATH:-/usr/share/salt-formulas}
 
                             echo "Configuring salt master formulas ..."
                             which wget > /dev/null || (aptget_wrapper update; aptget_wrapper install -y wget)
@@ -291,8 +291,8 @@ template:
                             #    ln -s ${FORMULA_PATH}/reclass/service/${formula_service} /srv/salt/reclass/classes/service/${formula_service}
                             #done
 
-                            [ ! -d /srv/salt/env ] && mkdir -p /srv/salt/env
-                            [ ! -L /srv/salt/env/prd ] && ln -s ${FORMULA_PATH}/env /srv/salt/env/prd
+                            [ ! -d /srv/salt/env ] && mkdir -p /srv/salt/env || echo ""
+                            [ ! -L /srv/salt/env/prd ] && ln -s ${FORMULAS_PATH}/env /srv/salt/env/prd || echo ""
 
                             [ ! -d /etc/reclass ] && mkdir /etc/reclass
                             cat << 'EOF' > /etc/reclass/reclass-config.yml
