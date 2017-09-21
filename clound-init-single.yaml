@@ -244,14 +244,28 @@ template:
                             aptget_wrapper clean
                             aptget_wrapper update
 
-                            [ ! -d /srv/salt/reclass/classes/service ] && mkdir -p /srv/salt/reclass/classes/service
+                            export RECLASS_ROOT=${RECLASS_ROOT:-/srv/salt/reclass}
+                            export CLUSTER_NAME="virtual-mcp11-aio"
 
-                            declare -a formula_services=("linux" "reclass" "salt" "openssh" "ntp" "git" "nginx" "collectd" "sensu" "heka" "sphinx" "mysql" "grafana" "libvirt" "rsyslog" "memcached" "rabbitmq" "apache" "keystone" "glance" "nova" "neutron" "cinder" "heat" "horizon" "ironic" "tftpd-hpa" "bind" "powerdns" "designate")
+                            function source_local_envs() {
+                              for path in / /tmp/kitchen /srv/salt . ${RECLASS_ROOT}/classes/cluster ${RECLASS_ROOT}/classes/cluster/${CLUSTER_NAME}; do
+                                for f in $(find $path -maxdepth 1 -name '*.env' 2> /dev/null); do
+                                    echo "Sourcing env variables from $f"
+                                    source $f
+                                done
+                              done
+                             }
+                            source_local_envs
+
+                            [ ! -d /srv/salt/reclass/classes/service ] && mkdir -p /srv/salt/reclass/classes/service
+                            
+                            FORMULAS_SALT_MASTER=${FORMULAS_SALT_MASTER:- $EXTRA_FORMULAS memcached openssh ntp nginx collectd sensu heka sphinx mysql grafana libvirt rsyslog glusterfs postfix xtrabackup freeipa prometheus telegraf elasticsearch kibana rundeck devops-portal rsync docker keepalived aptly jenkins gerrit artifactory influxdb}
+                            #declare -a formula_services=("linux" "reclass" "salt" "openssh" "ntp" "git" "nginx" "collectd" "sensu" "heka" "sphinx" "mysql" "grafana" "libvirt" "rsyslog" "memcached" "rabbitmq" "apache" "keystone" "glance" "nova" "neutron" "cinder" "heat" "horizon" "ironic" "tftpd-hpa" "bind" "powerdns" "designate")
 
                             echo -e "\nInstalling all required salt formulas\n"
-                            aptget_wrapper install -y "${formula_services[@]/#/salt-formula-}"
+                            aptget_wrapper install -y "${FORMULAS_SALT_MASTER[@]/#/salt-formula-}"
 
-                            for formula_service in "${formula_services[@]}"; do
+                            for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
                                 echo -e "\nLink service metadata for formula ${formula_service} ...\n"
                                 [ ! -L "/srv/salt/reclass/classes/service/${formula_service}" ] && \
                                 ln -s ${FORMULA_PATH}/reclass/service/${formula_service} /srv/salt/reclass/classes/service/${formula_service}
