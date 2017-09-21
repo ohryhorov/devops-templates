@@ -68,14 +68,14 @@ template:
             role: k8s
             params: &rack-01-node-params
               vcpu: !os_env SLAVE_NODE_CPU, 4
-              memory: !os_env SLAVE_NODE_MEMORY, 10240
+              memory: !os_env SLAVE_NODE_MEMORY, 12288
               boot:
                 - hd
               cloud_init_volume_name: iso
               cloud_init_iface_up: enp0s3
               volumes:
                 - name: system
-                  capacity: !os_env NODE_VOLUME_SIZE, 10
+                  capacity: !os_env NODE_VOLUME_SIZE, 65
                   source_image: /var/lib/libvirt/images/xenial-server-cloudimg-amd64-disk1.img
                   format: qcow2
                 - name: iso  # Volume with name 'iso' will be used
