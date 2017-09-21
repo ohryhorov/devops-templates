@@ -261,19 +261,35 @@ template:
                             
                             FORMULAS_SALT_MASTER=${FORMULAS_SALT_MASTER:- $EXTRA_FORMULAS memcached openssh ntp nginx collectd sensu heka sphinx mysql grafana libvirt rsyslog glusterfs postfix xtrabackup freeipa prometheus telegraf elasticsearch kibana rundeck devops-portal rsync docker keepalived aptly jenkins gerrit artifactory influxdb}
 
-                            declare -a FORMULAS_SALT_MASTER=(linux reclass salt git $(echo $FORMULAS_SALT_MASTER))
+                            declare -a FORMULAS_SALT_MASTER=(linux reclass salt git $(echo ${FORMULAS_SALT_MASTER[@]}))
                             export FORMULAS_SALT_MASTER
+
+                            echo "Configuring necessary formulas ..."
+
+                            [ ! -d ${RECLASS_ROOT}/classes/service ] && mkdir -p ${RECLASS_ROOT}/classes/service
+                            # Set essentials if FORMULAS_SALT_MASTER is not defined at all
+                            [ -z ${FORMULAS_SALT_MASTER+x} ] && declare -a FORMULAS_SALT_MASTER=("linux" "reclass" "salt" "memcached")
+                            for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
+                                echo -e "\nConfiguring salt formula ${formula_service} ...\n"
+                                [ ! -d "${FORMULAS_PATH}/env/${formula_service}" ] && \
+                                    if ! $SUDO apt-get install -y salt-formula-${formula_service}; then
+                                      echo -e "\nInstall salt-formula-${formula_service} failed.\n"
+                                      exit 1
+                                    fi
+                                [ ! -L "${RECLASS_ROOT}/classes/service/${formula_service}" ] && \
+                                    ln -sf ${FORMULAS_PATH}/reclass/service/${formula_service} ${RECLASS_ROOT}/classes/service/${formula_service}
+                            done
 
                             #declare -a formula_services=("linux" "reclass" "salt" "openssh" "ntp" "git" "nginx" "collectd" "sensu" "heka" "sphinx" "mysql" "grafana" "libvirt" "rsyslog" "memcached" "rabbitmq" "apache" "keystone" "glance" "nova" "neutron" "cinder" "heat" "horizon" "ironic" "tftpd-hpa" "bind" "powerdns" "designate")
 
-                            echo -e "\nInstalling all required salt formulas\n"
-                            aptget_wrapper install -y "${FORMULAS_SALT_MASTER[@]/#/salt-formula-}"
+                            #echo -e "\nInstalling all required salt formulas\n"
+                            #aptget_wrapper install -y "${FORMULAS_SALT_MASTER[@]/#/salt-formula-}"
 
-                            for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
-                                echo -e "\nLink service metadata for formula ${formula_service} ...\n"
-                                [ ! -L "/srv/salt/reclass/classes/service/${formula_service}" ] && \
-                                ln -s ${FORMULA_PATH}/reclass/service/${formula_service} /srv/salt/reclass/classes/service/${formula_service}
-                            done
+                            #for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
+                            #    echo -e "\nLink service metadata for formula ${formula_service} ...\n"
+                            #    [ ! -L "/srv/salt/reclass/classes/service/${formula_service}" ] && \
+                            #    ln -s ${FORMULA_PATH}/reclass/service/${formula_service} /srv/salt/reclass/classes/service/${formula_service}
+                            #done
 
                             [ ! -d /srv/salt/env ] && mkdir -p /srv/salt/env
                             [ ! -L /srv/salt/env/prd ] && ln -s ${FORMULA_PATH}/env /srv/salt/env/prd
