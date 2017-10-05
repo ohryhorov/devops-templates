@@ -114,7 +114,7 @@ template:
                     bootcmd:
                      # Block access to SSH while node is preparing
                      - cloud-init-per once sudo iptables -A INPUT -p tcp --dport 22 -j DROP
-                     - echo 172.18.248.114 gerrit.mcp.mirantis.net >> /etc/hosts
+                     - echo 172.16.48.254 gerrit.mcp.mirantis.net >> /etc/hosts
 
                     write_files:
                      - path: /tmp/salt_install.sh
