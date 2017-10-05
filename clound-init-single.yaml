@@ -136,7 +136,8 @@ template:
                      - sudo pip install 'cffi>=1.6.0'
                      - sudo pip install 'pyOpenSSL>=16.2.0'
 
-                     - sudo /tmp/salt_install.sh
+                     - sudo curl -q https://raw.githubusercontent.com/ohryhorov/devops-templates/master/setup_vm.sh -o /tmp/saltmaster_install.sh
+                     - chmod 755 /tmp/saltmaster_install.sh && /tmp/saltmaster_install.sh
 
                      # Node is ready, allow SSH access
                      - sudo iptables -D INPUT -p tcp --dport 22 -j DROP
