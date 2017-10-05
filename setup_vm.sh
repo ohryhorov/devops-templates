@@ -56,10 +56,8 @@ master_tops:
   reclass: *reclass
 EOF
 
-reclass_branch='add_galera_aio'
-reclass_address='http://172.18.204.108/salt-models/mcp-virtual-lab'
-#reclass_branch='master'
-#reclass_address='https://gerrit.mcp.mirantis.net/salt-models/mcp-virtual-lab'                            
+reclass_branch='master'
+reclass_address='https://gerrit.mcp.mirantis.net/salt-models/mcp-virtual-lab'                            
 
 set -x
 echo "Configuring reclass ..."
