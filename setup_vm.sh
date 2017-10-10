@@ -1,5 +1,7 @@
 #!/bin/bash
 
+REPO="stable"
+
 # Redirect all outputs
 exec > >(tee -i /tmp/mk-bootstrap.log) 2>&1
 
@@ -27,7 +29,7 @@ aptget_wrapper() {
 echo "Preparing base OS ..."
 which wget >/dev/null || (aptget_wrapper update; aptget_wrapper install -y wget)
 
-echo "deb [arch=amd64] http://apt-mk.mirantis.com/xenial nightly salt extra" > /etc/apt/sources.list.d/mcp_salt.list
+echo "deb [arch=amd64] http://apt-mk.mirantis.com/xenial ${REPO} salt extra" > /etc/apt/sources.list.d/mcp_salt.list
 wget -O - http://apt-mk.mirantis.com/public.gpg | apt-key add -
 
 echo "deb http://repo.saltstack.com/apt/ubuntu/16.04/amd64/2016.3 xenial main" > /etc/apt/sources.list.d/saltstack.list
@@ -107,7 +109,7 @@ parameters:
         engine: local
 " > /srv/salt/reclass/nodes/_generated/$node_hostname.$node_domain.yml
 
-FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial testing salt}
+FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial ${REPO} salt}
 FORMULA_GPG=${FORMULA_GPG:-http://apt-mk.mirantis.com/public.gpg}
 FORMULAS_PATH=${FORMULAS_PATH:-/usr/share/salt-formulas}
 
