@@ -1,6 +1,16 @@
 #!/bin/bash
 
 REPO="stable"
+reclass_branch='master'
+reclass_address='https://gerrit.mcp.mirantis.net/salt-models/mcp-virtual-lab'                            
+node_hostname="$(hostname -s)"
+node_domain='local'
+node_name="$(hostname -s)"
+node_cluster=''
+cluster_name='virtual-mcp11-aio'
+FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial ${REPO} salt}
+FORMULA_GPG=${FORMULA_GPG:-http://apt-mk.mirantis.com/public.gpg}
+FORMULAS_PATH=${FORMULAS_PATH:-/usr/share/salt-formulas}
 
 # Redirect all outputs
 exec > >(tee -i /tmp/mk-bootstrap.log) 2>&1
@@ -58,10 +68,6 @@ master_tops:
   reclass: *reclass
 EOF
 
-reclass_branch='master'
-reclass_address='https://gerrit.mcp.mirantis.net/salt-models/mcp-virtual-lab'                            
-
-set -x
 echo "Configuring reclass ..."
 ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 if echo $reclass_branch | egrep -q "^refs"; then
@@ -75,19 +81,12 @@ else
    git clone -b $reclass_branch --recurse-submodules $reclass_address /srv/salt/reclass
 fi
 
-node_hostname="$(hostname -s)"
-node_domain='local'
-node_name="$(hostname -s)"
-node_cluster=''
-cluster_name='virtual-mcp11-aio'
-
 sed -i "s/192.168.10.90/$(ifconfig enp0s3 | grep 'inet addr' | awk -F' ' '{print $2}' | cut -d':' -f2)/g" /srv/salt/reclass/classes/cluster/${cluster_name}/init.yml
 sed -i "s/172.16.10.90/$(ifconfig enp0s3 | grep 'inet addr' | awk -F' ' '{print $2}' | cut -d':' -f2)/g" /srv/salt/reclass/classes/cluster/${cluster_name}/init.yml
 
 mkdir -p /srv/salt/reclass/classes/service
 
 mkdir -p /srv/salt/reclass/nodes/_generated
-
 
 echo "
 classes:
@@ -109,10 +108,6 @@ parameters:
         engine: local
 " > /srv/salt/reclass/nodes/_generated/$node_hostname.$node_domain.yml
 
-FORMULA_REPOSITORY=${FORMULA_REPOSITORY:-deb [arch=amd64] http://apt-mk.mirantis.com/xenial ${REPO} salt}
-FORMULA_GPG=${FORMULA_GPG:-http://apt-mk.mirantis.com/public.gpg}
-FORMULAS_PATH=${FORMULAS_PATH:-/usr/share/salt-formulas}
-
 echo "Configuring salt master formulas ..."
 which wget > /dev/null || (aptget_wrapper update; aptget_wrapper install -y wget)
 
@@ -123,7 +118,7 @@ aptget_wrapper clean
 aptget_wrapper update
 
 export RECLASS_ROOT=${RECLASS_ROOT:-/srv/salt/reclass}
-export CLUSTER_NAME="virtual-mcp11-aio"
+export CLUSTER_NAME="${cluster_name}"
 
 function source_local_envs() {
   for path in / /tmp/kitchen /srv/salt . ${RECLASS_ROOT}/classes/cluster ${RECLASS_ROOT}/classes/cluster/${CLUSTER_NAME}; do
@@ -157,17 +152,6 @@ for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
     [ ! -L "${RECLASS_ROOT}/classes/service/${formula_service}" ] && \
         ln -sf ${FORMULAS_PATH}/reclass/service/${formula_service} ${RECLASS_ROOT}/classes/service/${formula_service}
 done
-
-#declare -a formula_services=("linux" "reclass" "salt" "openssh" "ntp" "git" "nginx" "collectd" "sensu" "heka" "sphinx" "mysql" "grafana" "libvirt" "rsyslog" "memcached" "rabbitmq" "apache" "keystone" "glance" "nova" "neutron" "cinder" "heat" "horizon" "ironic" "tftpd-hpa" "bind" "powerdns" "designate")
-
-#echo -e "\nInstalling all required salt formulas\n"
-#aptget_wrapper install -y "${FORMULAS_SALT_MASTER[@]/#/salt-formula-}"
-
-#for formula_service in "${FORMULAS_SALT_MASTER[@]}"; do
-#    echo -e "\nLink service metadata for formula ${formula_service} ...\n"
-#    [ ! -L "/srv/salt/reclass/classes/service/${formula_service}" ] && \
-#    ln -s ${FORMULA_PATH}/reclass/service/${formula_service} /srv/salt/reclass/classes/service/${formula_service}
-#done
 
 [ ! -d /srv/salt/env ] && mkdir -p /srv/salt/env || echo ""
 [ ! -L /srv/salt/env/prd ] && ln -s ${FORMULAS_PATH}/env /srv/salt/env/prd || echo ""
@@ -204,6 +188,4 @@ salt-call --no-color state.sls salt.master
 salt-call --no-color saltutil.sync_all
 salt-call --no-color state.sls salt.api,salt.minion.ca -l info
 systemctl restart salt-minion
-
-set +x
 
